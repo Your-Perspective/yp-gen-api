@@ -1,107 +1,47 @@
 package main
 
 import (
-    "github.com/gin-gonic/gin"
-    "github.com/jinzhu/gorm"
-    _ "github.com/mattn/go-sqlite3" // Import the SQLite driver
-    "log"
-    "net/http"
+	"log"
+	"yp-blog-api/controller"
+	database "yp-blog-api/db"
+	"yp-blog-api/models"
+	repositories "yp-blog-api/repository"
+	"yp-blog-api/service"
+
+	"github.com/gin-gonic/gin"
 )
 
-var db *gorm.DB
-var err error
-
-// User represents the user model
-type User struct {
-    ID    uint   `json:"id" gorm:"primary_key"`
-    Name  string `json:"name"`
-    Email string `json:"email"`
-}
-
-// Initialize and connect to the SQLite database
-func initDB() {
-    db, err = gorm.Open("sqlite3", "test.db")
-    if err != nil {
-        log.Fatalf("Failed to connect to SQLite: %v", err)
-    }
-    log.Println("Connected to SQLite successfully")
-
-    // Migrate the schema
-    db.AutoMigrate(&User{})
-}
-
 func main() {
-    // Initialize the database connection
-    initDB()
-    defer db.Close()
+	// Initialize the database
+	database.InitDatabase()
 
-    // Set up the Gin router
-    router := gin.Default()
+	// Ensure the database is closed when the main function ends
+	defer database.CloseDatabase()
 
-    // Define API routes
-    router.GET("/users", getUsers)
-    router.GET("/users/:id", getUserByID)
-    router.POST("/users", createUser)
-    router.PUT("/users/:id", updateUser)
-    router.DELETE("/users/:id", deleteUser)
+	// AutoMigrate to create/update the schema
+	err := database.DB.AutoMigrate(&models.Blog{}, &models.User{}, &models.Tag{}, &models.Category{})
+	if err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
 
-    // Start the server
-    router.Run(":9090")
-}
+	// Initialize the repository, service, and controller
+	blogRepo := repositories.NewBlogRepository(database.DB)
+	blogService := service.NewBlogService(blogRepo)
 
-// Get all users
-func getUsers(c *gin.Context) {
-    var users []User
-    db.Find(&users)
-    c.JSON(http.StatusOK, users)
-}
+	// Set up the Gin router
+	router := gin.Default()
 
-// Get a user by ID
-func getUserByID(c *gin.Context) {
-    id := c.Param("id")
-    var user User
-    if err := db.First(&user, id).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
-    c.JSON(http.StatusOK, user)
-}
+	blogController := controller.NewBlogController(blogService)
 
-// Create a new user
-func createUser(c *gin.Context) {
-    var user User
-    if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-    db.Create(&user)
-    c.JSON(http.StatusCreated, user)
-}
+	router.GET("/blogs", blogController.GetAllBlogs)
+	router.GET("/blogs/:id", blogController.GetBlogById)
+	router.POST("/blogs", blogController.CreateBlog)
+	router.PUT("/blogs/:id", blogController.UpdateBlog)
+	router.DELETE("/blogs/:id", blogController.DeleteBlog)
 
-// Update a user by ID
-func updateUser(c *gin.Context) {
-    id := c.Param("id")
-    var user User
-    if err := db.First(&user, id).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
-
-    if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-
-    db.Save(&user)
-    c.JSON(http.StatusOK, user)
-}
-
-// Delete a user by ID
-func deleteUser(c *gin.Context) {
-    id := c.Param("id")
-    if err := db.Delete(&User{}, id).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
-    c.Status(http.StatusNoContent)
+	// Start the server
+	err = router.Run(":9090")
+	if err != nil {
+		log.Fatalf("Failed to start the server: %v", err)
+	}
 }
