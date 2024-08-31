@@ -28,13 +28,14 @@ func main() {
 	// Initialize the repositories
 	blogRepo := repositories.NewBlogRepository(database.DB)
 	bannerRepo := repositories.NewAdvertisingBannerRepository(database.DB)
+	tagRepo := repositories.NewTagRepository(database.DB)
+	categoryRepo := repositories.NewCategoryRepository(database.DB)
 
 	// Initialize the mappers
 	blogMapper := mapper.NewBlogMapper()
 	bannerMapper := mapper.NewAdvertisingBannerMapper()
-
 	// Initialize the service with all required dependencies
-	blogService := service.NewBlogService(blogRepo, bannerRepo, blogMapper, bannerMapper)
+	blogService := service.NewBlogService(blogRepo, bannerRepo, blogMapper, bannerMapper, categoryRepo, tagRepo)
 
 	// Set up the Gin router
 	router := gin.Default()
@@ -43,13 +44,15 @@ func main() {
 	blogController := controller.NewBlogController(blogService)
 
 	// Define the routes
-	router.GET("/blogs", blogController.GetAllBlogs)
-	router.GET("/blogs/:id", blogController.GetBlogById)
-	router.POST("/blogs", blogController.CreateBlog)
-	router.PUT("/blogs/:id", blogController.UpdateBlog)
-	router.DELETE("/blogs/:id", blogController.DeleteBlog)
-	router.GET("/blogs/categories/:categoriesSlug", blogController.ListAllByCategoriesSlug)
-	router.GET("/blogs/categories/", blogController.ListAllByCategoriesSlug)
+	router.GET("/api/blogs", blogController.GetAllBlogs)
+	router.GET("/api/blogs/:id", blogController.GetBlogById)
+	router.POST("/api/blogs-admin", blogController.CreateBlog)
+	router.PUT("/api/blogs/:id", blogController.UpdateBlog)
+	router.DELETE("/api/blogs/:id", blogController.DeleteBlog)
+	router.GET("/api/blogs/categories/:categoriesSlug", blogController.ListAllByCategoriesSlug)
+	router.GET("/api/blogs/", blogController.ListAllByCategoriesSlug)
+	router.POST("/api/blogs", blogController.CreateBlog)
+
 	// Start the server
 	err = router.Run(":9090")
 	if err != nil {

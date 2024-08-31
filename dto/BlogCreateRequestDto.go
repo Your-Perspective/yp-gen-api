@@ -11,7 +11,7 @@ type BlogCreateRequestDto struct {
 	Published   bool   `json:"published" validate:"required"`
 	BlogContent string `json:"blogContent" validate:"required"`
 	Slug        string `json:"slug"`
-	IsPin       bool   `json:"isPin" validate:"required"`
+	IsPin       bool   `json:"isPin" `
 	Thumbnail   string `json:"thumbnail" validate:"omitempty,max=255"`
 	Summary     string `json:"summary" validate:"omitempty,max=500"`
 	MinRead     int    `json:"minRead" validate:"required,min=1"`

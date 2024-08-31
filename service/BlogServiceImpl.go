@@ -1,30 +1,38 @@
 package service
 
 import (
+	"fmt"
+	"github.com/google/uuid"
 	"math/rand"
+	"strings"
 	"time"
 	"yp-blog-api/dto"
 	mapper "yp-blog-api/mapping"
 	"yp-blog-api/models"
 	_ "yp-blog-api/repository"
 	repositories "yp-blog-api/repository"
+	"yp-blog-api/utils"
 )
 
 // blogServiceImpl implements the BlogService interface.
 type blogServiceImpl struct {
 	blogRepo     repositories.BlogRepository
+	tagRepo      repositories.TagRepository
+	categoryRepo repositories.CategoryRepository
 	bannerRepo   *repositories.AdvertisingBannerRepository
 	blogMapper   mapper.BlogMapper
 	bannerMapper mapper.AdvertisingBannerMapper
 }
 
 // NewBlogService creates a new instance of blogServiceImpl
-func NewBlogService(blogRepo repositories.BlogRepository, bannerRepo *repositories.AdvertisingBannerRepository, blogMapper mapper.BlogMapper, bannerMapper mapper.AdvertisingBannerMapper) *blogServiceImpl {
+func NewBlogService(blogRepo repositories.BlogRepository, bannerRepo *repositories.AdvertisingBannerRepository, blogMapper mapper.BlogMapper, bannerMapper mapper.AdvertisingBannerMapper, categoryRepo repositories.CategoryRepository, TagRepo repositories.TagRepository) *blogServiceImpl {
 	return &blogServiceImpl{
 		blogRepo:     blogRepo,
 		bannerRepo:   bannerRepo,
 		blogMapper:   blogMapper,
 		bannerMapper: bannerMapper,
+		categoryRepo: categoryRepo,
+		tagRepo:      TagRepo,
 	}
 }
 
@@ -119,11 +127,80 @@ func (s *blogServiceImpl) RecentPost() []dto.RecentPostBlogDto {
 	panic("implement me")
 }
 
-func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto.BlogCreateRequestDto) {
-	//TODO implement me
-	panic("implement me")
+func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto.BlogCreateRequestDto) error {
+	// Validate the incoming DTO
+	if err := blogCreateRequestDto.Validate(); err != nil {
+		return fmt.Errorf("validation error: %v", err)
+	}
+
+	// Map the DTO to the Blog entity
+	blog := s.blogMapper.CreateBlogDtoToBlog(blogCreateRequestDto)
+
+	// Retrieve categories by IDs
+	categories, err := s.categoryRepo.FindAllById(blogCreateRequestDto.CategoryIds)
+	if err != nil {
+		return fmt.Errorf("error retrieving categories: %v", err)
+	}
+	blog.Categories = categories
+
+	// Concatenate category slugs for the slug generation
+	var categoryNames []string
+	for _, category := range categories {
+		categoryNames = append(categoryNames, strings.ReplaceAll(strings.ToLower(category.Slug), " ", "-"))
+	}
+
+	// Generate a unique identifier (UUID)
+	uniqueIdentifier := uuid.New().String()[:12]
+
+	// Prepare the blog title for slug generation
+	nameBlog := blogCreateRequestDto.BlogTitle
+
+	// Check if the blog title contains Khmer characters
+	if utils.ContainsKhmer(nameBlog) {
+		nameBlog = utils.RemoveKhmerCharacters(nameBlog)
+	}
+
+	// Concatenate title and categories for the slug
+	titleAndCategories := strings.ToLower(strings.ReplaceAll(nameBlog, " ", "-")) + "-" + strings.Join(categoryNames, "-")
+
+	// Generate a descriptive slug and append the UUID
+	slug := utils.Init(titleAndCategories + "-" + uniqueIdentifier)
+	blog.Slug = slug
+
+	// Check the pinned blogs limit
+	if err := s.checkPinnedBlogsLimit(int(blog.Author.ID), blog.IsPin); err != nil {
+		return err
+	}
+
+	// Retrieve tags by IDs
+	tags, err := s.tagRepo.FindAllById(blogCreateRequestDto.Tags)
+	if err != nil {
+		return fmt.Errorf("error retrieving tags: %v", err)
+	}
+	blog.Tags = tags
+
+	// Save the blog and check for errors
+	_, err = s.blogRepo.Save(blog)
+	if err != nil {
+		return fmt.Errorf("error saving blog: %v", err)
+	}
+
+	return nil
 }
 
+func (s *blogServiceImpl) checkPinnedBlogsLimit(authorID int, isPin bool) error {
+	// Example check: Limit to 3 pinned blogs per author
+	if isPin {
+		pinnedCount, err := s.blogRepo.CountPinnedBlogsByAuthorId(uint(authorID))
+		if err != nil {
+			return err
+		}
+		if pinnedCount >= 3 {
+			return fmt.Errorf("pinned blogs limit exceeded")
+		}
+	}
+	return nil
+}
 func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto.BlogUpdateRequestDto, id int) {
 	//TODO implement me
 	panic("implement me")

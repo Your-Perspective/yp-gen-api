@@ -19,7 +19,7 @@ type BlogService interface {
 	Find6BlogsByUsernameAndCountViewer(username string) []dto.BlogCardDto
 	Find6BlogsByCategoriesSlug(slug string) []dto.BlogCardDto
 	RecentPost() []dto.RecentPostBlogDto
-	CreateBlog(blogCreateRequestDto dto.BlogCreateRequestDto)
+	CreateBlog(blogCreateRequestDto dto.BlogCreateRequestDto) error
 	UpdateBlog(blogUpdateRequestDto dto.BlogUpdateRequestDto, id int)
 	DeleteBlogById(id int)
 	DeleteBlogByChangeStatus(id int)

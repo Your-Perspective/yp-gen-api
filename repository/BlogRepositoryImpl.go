@@ -21,15 +21,14 @@ func (r *blogRepositoryImpl) FindBlogsByCategorySlug(categorySlug string) ([]mod
 	var blogs []models.Blog
 	err := r.db.Joins("JOIN blog_categories bc ON bc.blog_id = blogs.id").
 		Joins("JOIN categories c ON bc.category_id = c.id").
-		Where("c.slug = ? AND blogs.published = ? AND blogs.deleted_at IS NULL", categorySlug, true).
+		Where("c.slug = ? AND blogs.published = ? AND blogs.is_deleted IS FALSE", categorySlug, true).
 		Order("blogs.created_at DESC, blogs.count_viewer DESC").
 		Find(&blogs).Error
 	return blogs, err
 }
-
 func (r *blogRepositoryImpl) FindAllByPublishedAndNotDeletedOrderByCountViewerDescCreatedAtDesc() ([]models.Blog, error) {
 	var blogs []models.Blog
-	err := r.db.Where("published = ? AND deleted_at IS NULL", true).
+	err := r.db.Where("published = ? AND is_deleted IS FALSE", true).
 		Order("count_viewer DESC, created_at DESC").
 		Find(&blogs).Error
 	return blogs, err

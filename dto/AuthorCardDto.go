@@ -1,6 +1,6 @@
 package dto
 
 type AuthorCardDto struct {
-	profileImages string
-	UserName      string
+	ProfileImages string `json:"profileImages"`
+	UserName      string `json:"userName"`
 }

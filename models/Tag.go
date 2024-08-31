@@ -1,10 +1,14 @@
 package models
 
-type Tag struct {
-	ID    uint   `gorm:"primaryKey;autoIncrement"`
-	Title string `gorm:"size:100;not null;unique"`
+import "time"
 
-	Blogs []Blog `gorm:"many2many:blog_tags;"`
+type Tag struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	Title     string    `gorm:"size:100;not null;unique"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+	IsDeleted bool      `gorm:"default:false" json:"isDeleted"`
+	Blogs     []Blog    `gorm:"many2many:blog_tags;"`
 }
 
 func (Tag) TableName() string {

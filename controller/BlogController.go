@@ -1,8 +1,12 @@
 package controller
 
 import (
+	"errors"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
+	"yp-blog-api/dto"
+	"yp-blog-api/erorr"
 	"yp-blog-api/models"
 	"yp-blog-api/service"
 
@@ -47,7 +51,7 @@ func (ctrl *BlogController) GetBlogById(c *gin.Context) {
 }
 
 // CreateBlog handles POST requests to create a new blog
-func (ctrl *BlogController) CreateBlog(c *gin.Context) {
+func (ctrl *BlogController) CreateBlogAdmin(c *gin.Context) {
 	var blog models.Blog
 	if err := c.ShouldBindJSON(&blog); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -113,4 +117,34 @@ func (c *BlogController) ListAllByCategoriesSlug(ctx *gin.Context) {
 
 	// Respond with the result in JSON format
 	ctx.JSON(http.StatusOK, blogCards)
+}
+
+func (c *BlogController) CreateBlog(ctx *gin.Context) {
+	var blogCreateRequestDto dto.BlogCreateRequestDto
+
+	// Bind JSON input to the DTO
+	if err := ctx.ShouldBindJSON(&blogCreateRequestDto); err != nil {
+		var errorDetails erorr.ErrorResponse
+		errorDetails.Error = "Invalid input"
+
+		// Collect detailed error information
+		var errs validator.ValidationErrors
+		errors.As(err, &errs)
+		errorDetails.Fields = make(map[string]string)
+		for _, e := range errs {
+			errorDetails.Fields[e.Field()] = e.Error() // or any custom error message format
+		}
+
+		ctx.JSON(http.StatusBadRequest, errorDetails)
+		return
+	}
+
+	// Call the service layer to create the blog
+	if err := c.blogService.CreateBlog(blogCreateRequestDto); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return success response
+	ctx.JSON(http.StatusOK, gin.H{"message": "Blog created successfully"})
 }
