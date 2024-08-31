@@ -102,3 +102,15 @@ func (ctrl *BlogController) DeleteBlog(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Blog deleted successfully"})
 }
+
+// ListAllByCategoriesSlug handles GET requests to list blog cards by category slug
+func (c *BlogController) ListAllByCategoriesSlug(ctx *gin.Context) {
+	// Get the categoriesSlug from the URL parameters
+	slug := ctx.Param("categoriesSlug")
+
+	// Call the service to get the list of blog cards
+	blogCards := c.blogService.FindBlogCardByCategoriesSlug(slug)
+
+	// Respond with the result in JSON format
+	ctx.JSON(http.StatusOK, blogCards)
+}

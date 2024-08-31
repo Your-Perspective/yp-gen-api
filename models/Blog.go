@@ -1,8 +1,6 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 type Blog struct {
 	ID          uint       `gorm:"primaryKey"`
@@ -21,6 +19,10 @@ type Blog struct {
 	Author      User       `gorm:"foreignKey:AuthorID"`
 	Tags        []Tag      `gorm:"many2many:blog_tags;"`
 	Categories  []Category `gorm:"many2many:blog_categories;"`
-	CreatedAt   time.Time  `gorm:"index"`
-	UpdatedAt   time.Time  `gorm:"index"`
+	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updatedAt"`
+}
+
+func (Blog) TableName() string {
+	return "blogs"
 }

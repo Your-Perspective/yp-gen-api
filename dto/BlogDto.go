@@ -18,8 +18,3 @@ type BlogDto struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
-
-type BlogDetailDto struct {
-	BlogDto
-	ParentBlogTitle string `json:"parent_blog_title"`
-}
