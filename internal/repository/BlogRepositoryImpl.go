@@ -61,12 +61,12 @@ func (r *blogRepositoryImpl) FindTop6ByCategorySlug(categorySlug string) ([]mode
 		Find(&blogs).Error
 	return blogs, err
 }
-
 func (r *blogRepositoryImpl) FindByUsernameAndSlug(username, slug string) (models.Blog, error) {
 	var blog models.Blog
-	err := r.db.Joins("JOIN users u ON u.id = blogs.author_id").
-		Where("u.user_name = ? AND blogs.slug = ?", username, slug).
-		First(&blog).Error
+	err := r.db.Preload("Author"). // Preloads the related Author (User) model
+					Joins("Author").
+					Where("Author.user_name = ? AND blogs.slug = ?", username, slug).
+					First(&blog).Error
 	return blog, err
 }
 

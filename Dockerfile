@@ -1,5 +1,5 @@
 # Step 1: Build the Go application
-FROM golang:1.23 as builder
+FROM golang:1.23 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -10,19 +10,19 @@ COPY go.mod go.sum ./
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
-# Copy the source code to the container
+# Copy the entire source code to the container
 COPY . .
 
-# Build the Go app with static linking
-RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/yp-blog-api
+# Enable CGO and build the Go app
+RUN CGO_ENABLED=1 GOOS=linux go build -o /go/bin/yp-blog-api ./cmd/api
 
-# Step 2: Create a small image for running the application
-FROM gcr.io/distroless/static-debian11
+# Step 2: Use a compatible base image for running the application
+FROM ubuntu:22.04
 
 # Set the Current Working Directory inside the container
 WORKDIR /root/
 
-# Copy the Pre-built binary file from the builder stage
+# Copy the pre-built binary file from the builder stage
 COPY --from=builder /go/bin/yp-blog-api .
 
 # Expose port 9090 to the outside world

@@ -2,9 +2,10 @@ package service
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"math/rand"
 	"strings"
+	"sync"
+	_ "sync"
 	"time"
 	dto2 "yp-blog-api/internal/dto"
 	mapper2 "yp-blog-api/internal/mapping"
@@ -22,6 +23,8 @@ type blogServiceImpl struct {
 	bannerRepo   *repositories2.AdvertisingBannerRepository
 	blogMapper   mapper2.BlogMapper
 	bannerMapper mapper2.AdvertisingBannerMapper
+	viewCountMap sync.Map // Thread-safe map for storing view counts
+
 }
 
 // NewBlogService creates a new instance of blogServiceImpl
@@ -33,6 +36,8 @@ func NewBlogService(blogRepo repositories2.BlogRepository, bannerRepo *repositor
 		bannerMapper: bannerMapper,
 		categoryRepo: categoryRepo,
 		tagRepo:      TagRepo,
+		viewCountMap: sync.Map{}, // Initialize sync.Map
+
 	}
 }
 
@@ -102,29 +107,36 @@ func interleaveBlogsAndBanners(blogs []dto2.BlogCardDto, banners []dto2.Advertis
 
 	return result
 }
-func (s *blogServiceImpl) FindAllBlogForAdmin() []dto2.BlogAdminDto {
-	//TODO implement me
-	panic("implement me")
+
+func (s *blogServiceImpl) FindBlogDetailByAuthorAndSlug(author string, slug string) (dto2.BlogDetailDto, error) {
+	// Fetch the blog by author and slug
+	blog, err := s.blogRepo.FindByUsernameAndSlug(author, slug)
+	if err != nil {
+		return dto2.BlogDetailDto{}, fmt.Errorf("blog by author '%s' and slug '%s' could not be found: %w", author, slug, err)
+	}
+
+	// Increment the view count
+	err = s.IncrementViewCount(int(blog.ID))
+	if err != nil {
+		return dto2.BlogDetailDto{}, fmt.Errorf("failed to increment view count: %w", err)
+	}
+
+	// Map the Blog entity to BlogDetailDto
+	blogDetail := s.blogMapper.BlogToBlogDetailDto(blog)
+	return blogDetail, nil
 }
 
-func (s *blogServiceImpl) FindBlogDetailByAuthorAndSlug(author string, slug string) dto2.BlogDetailDto {
-	//TODO implement me
-	panic("implement me")
-}
+// IncrementViewCount increments the view count for the given blog ID
+func (s *blogServiceImpl) IncrementViewCount(id int) error {
+	// Load or store the initial value if it doesn't exist
+	value, _ := s.viewCountMap.LoadOrStore(id, 1)
 
-func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []dto2.BlogCardDto {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCardDto {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *blogServiceImpl) RecentPost() []dto2.RecentPostBlogDto {
-	//TODO implement me
-	panic("implement me")
+	// Increment the value
+	if currentCount, ok := value.(int); ok {
+		s.viewCountMap.Store(id, currentCount+1)
+		return nil
+	}
+	return fmt.Errorf("failed to increment view count for blog ID: %d", id)
 }
 
 func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto2.BlogCreateRequestDto) error {
@@ -149,8 +161,8 @@ func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto2.BlogCreateRequest
 		categoryNames = append(categoryNames, strings.ReplaceAll(strings.ToLower(category.Slug), " ", "-"))
 	}
 
-	// Generate a unique identifier (UUID)
-	uniqueIdentifier := uuid.New().String()
+	// Generate a 9-digit unique identifier
+	uniqueIdentifier := utils.GenerateUniqueIdentifier()
 
 	// Prepare the blog title for slug generation
 	nameBlog := blogCreateRequestDto.BlogTitle
@@ -161,10 +173,10 @@ func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto2.BlogCreateRequest
 	}
 
 	// Concatenate title and categories for the slug
-	titleAndCategories := strings.ToLower(strings.ReplaceAll(nameBlog, " ", "-")) + "-" + strings.Join(categoryNames, "-")
+	titleAndCategories := nameBlog + "-" + strings.Join(categoryNames, "-")
 
-	// Generate a descriptive slug and append the UUID
-	slug := utils.Init("-" + titleAndCategories + "-" + uniqueIdentifier)
+	// Generate a descriptive slug using the slug package and append the unique identifier
+	slug := utils.Init(titleAndCategories + "-" + uniqueIdentifier)
 	blog.Slug = slug
 
 	// Check the pinned blogs limit
@@ -201,20 +213,6 @@ func (s *blogServiceImpl) checkPinnedBlogsLimit(authorID int, isPin bool) error 
 	}
 	return nil
 }
-func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, id int) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *blogServiceImpl) DeleteBlogById(id int) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *blogServiceImpl) DeleteBlogByChangeStatus(id int) {
-	//TODO implement me
-	panic("implement me")
-}
 
 // NewBlogService creates a new instance of BlogService.
 
@@ -241,4 +239,38 @@ func (s *blogServiceImpl) Update(blog models.Blog) (models.Blog, error) {
 // DeleteById deletes a blog by its ID.
 func (s *blogServiceImpl) DeleteById(id uint) error {
 	return s.blogRepo.DeleteById(id)
+}
+
+func (s *blogServiceImpl) FindAllBlogForAdmin() []dto2.BlogAdminDto {
+	//TODO implement me
+	panic("implement me")
+}
+func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []dto2.BlogCardDto {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCardDto {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *blogServiceImpl) RecentPost() []dto2.RecentPostBlogDto {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, id int) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *blogServiceImpl) DeleteBlogById(id int) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *blogServiceImpl) DeleteBlogByChangeStatus(id int) {
+	//TODO implement me
+	panic("implement me")
 }

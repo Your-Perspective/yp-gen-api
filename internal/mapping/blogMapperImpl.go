@@ -49,11 +49,15 @@ func (m *blogMapperImpl) BlogToBlogDetailDto(blog models2.Blog) dto2.BlogDetailD
 		FormattedCountViewer: m.formatCountViewer(blog.CountViewer),
 		MinRead:              blog.MinRead,
 		Published:            blog.Published,
-		Author:               dto2.AuthorCardDetailDto{UserName: blog.Author.UserName},
-		CreatedAt:            GetTimeAgo(blog.CreatedAt),
-		LastModifiedTimeAgo:  GetTimeAgo(blog.UpdatedAt),
-		Categories:           mapCategories(blog.Categories),
-		Tags:                 mapTags(blog.Tags),
+		Author: dto2.AuthorCardDetailDto{
+			ProfileImage: blog.Author.ProfileImage,
+			UserName:     blog.Author.UserName,
+			Bio:          blog.Author.Bio,
+		},
+		CreatedAt:           GetTimeAgo(blog.CreatedAt),
+		LastModifiedTimeAgo: GetTimeAgo(blog.UpdatedAt),
+		Categories:          mapCategories(blog.Categories),
+		Tags:                mapTags(blog.Tags),
 	}
 }
 

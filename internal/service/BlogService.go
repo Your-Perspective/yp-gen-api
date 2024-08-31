@@ -15,7 +15,7 @@ type BlogService interface {
 
 	FindBlogCardByCategoriesSlug(slug string) []interface{}
 	FindAllBlogForAdmin() []dto2.BlogAdminDto
-	FindBlogDetailByAuthorAndSlug(author string, slug string) dto2.BlogDetailDto
+	FindBlogDetailByAuthorAndSlug(author string, slug string) (dto2.BlogDetailDto, error)
 	Find6BlogsByUsernameAndCountViewer(username string) []dto2.BlogCardDto
 	Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCardDto
 	RecentPost() []dto2.RecentPostBlogDto

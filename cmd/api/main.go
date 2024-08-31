@@ -4,10 +4,8 @@ import (
 	"log"
 	"yp-blog-api/internal/api"
 	"yp-blog-api/internal/config"
-	_ "yp-blog-api/internal/mapping"
 	mapper "yp-blog-api/internal/mapping"
 	"yp-blog-api/internal/models"
-	_ "yp-blog-api/internal/repository"
 	repositories "yp-blog-api/internal/repository"
 	"yp-blog-api/internal/service"
 )

@@ -15,14 +15,16 @@ func SetupRouter(blogService service.BlogService) *gin.Engine {
 	blogController := controller.NewBlogController(blogService)
 
 	// Define the routes
-	router.GET("/api/blogs", blogController.GetAllBlogs)
-	router.GET("/api/blogs/:id", blogController.GetBlogById)
+	router.GET("/api/blogs-admin", blogController.GetAllBlogs)
+	router.GET("/api/blogs-admin/:id", blogController.GetBlogById)
 	router.POST("/api/blogs-admin", blogController.CreateBlog)
-	router.PUT("/api/blogs/:id", blogController.UpdateBlog)
-	router.DELETE("/api/blogs/:id", blogController.DeleteBlog)
-	router.GET("/api/blogs/categories/:categoriesSlug", blogController.ListAllByCategoriesSlug)
+	router.PUT("/api/blogs-admin/:id", blogController.UpdateBlog)
+	router.DELETE("/api/blogs-admin/:id", blogController.DeleteBlog)
+
+	// project api blog
+	router.GET("/api/blogs/:categoriesSlug", blogController.ListAllByCategoriesSlug)
 	router.GET("/api/blogs/", blogController.ListAllByCategoriesSlug)
-	router.POST("/api/blogs", blogController.CreateBlog)
+	router.GET("/api/blogs/@:author/:slug", blogController.GetBlogDetailByAuthorAndSlug) // Updated route
 
 	return router
 }

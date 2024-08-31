@@ -147,3 +147,20 @@ func (c *BlogController) CreateBlog(ctx *gin.Context) {
 	// Return success response
 	ctx.JSON(http.StatusOK, gin.H{"message": "Blog created successfully"})
 }
+
+func (c *BlogController) GetBlogDetailByAuthorAndSlug(ctx *gin.Context) {
+	// Extract the 'author' and 'slug' parameters from the URL
+	author := ctx.Param("author")
+	slug := ctx.Param("slug")
+
+	// Call the service method to find the blog detail
+	blogDetail, err := c.blogService.FindBlogDetailByAuthorAndSlug(author, slug)
+	if err != nil {
+		// Handle the error, respond with 404 if the blog is not found
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Respond with the blog detail
+	ctx.JSON(http.StatusOK, blogDetail)
+}
