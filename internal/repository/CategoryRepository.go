@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"yp-blog-api/models"
+	"yp-blog-api/internal/models"
 )
 
 type CategoryRepository interface {

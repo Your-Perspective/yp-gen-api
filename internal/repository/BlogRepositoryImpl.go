@@ -2,10 +2,9 @@ package repositories
 
 import (
 	"errors"
-	"time"
-	"yp-blog-api/models"
-
 	"gorm.io/gorm"
+	"time"
+	"yp-blog-api/internal/models"
 )
 
 type blogRepositoryImpl struct {

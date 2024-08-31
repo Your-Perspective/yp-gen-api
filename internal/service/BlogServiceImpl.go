@@ -6,26 +6,26 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-	"yp-blog-api/dto"
-	mapper "yp-blog-api/mapping"
-	"yp-blog-api/models"
-	_ "yp-blog-api/repository"
-	repositories "yp-blog-api/repository"
-	"yp-blog-api/utils"
+	dto2 "yp-blog-api/internal/dto"
+	mapper2 "yp-blog-api/internal/mapping"
+	"yp-blog-api/internal/models"
+	_ "yp-blog-api/internal/repository"
+	repositories2 "yp-blog-api/internal/repository"
+	"yp-blog-api/internal/utils"
 )
 
 // blogServiceImpl implements the BlogService interface.
 type blogServiceImpl struct {
-	blogRepo     repositories.BlogRepository
-	tagRepo      repositories.TagRepository
-	categoryRepo repositories.CategoryRepository
-	bannerRepo   *repositories.AdvertisingBannerRepository
-	blogMapper   mapper.BlogMapper
-	bannerMapper mapper.AdvertisingBannerMapper
+	blogRepo     repositories2.BlogRepository
+	tagRepo      repositories2.TagRepository
+	categoryRepo repositories2.CategoryRepository
+	bannerRepo   *repositories2.AdvertisingBannerRepository
+	blogMapper   mapper2.BlogMapper
+	bannerMapper mapper2.AdvertisingBannerMapper
 }
 
 // NewBlogService creates a new instance of blogServiceImpl
-func NewBlogService(blogRepo repositories.BlogRepository, bannerRepo *repositories.AdvertisingBannerRepository, blogMapper mapper.BlogMapper, bannerMapper mapper.AdvertisingBannerMapper, categoryRepo repositories.CategoryRepository, TagRepo repositories.TagRepository) *blogServiceImpl {
+func NewBlogService(blogRepo repositories2.BlogRepository, bannerRepo *repositories2.AdvertisingBannerRepository, blogMapper mapper2.BlogMapper, bannerMapper mapper2.AdvertisingBannerMapper, categoryRepo repositories2.CategoryRepository, TagRepo repositories2.TagRepository) *blogServiceImpl {
 	return &blogServiceImpl{
 		blogRepo:     blogRepo,
 		bannerRepo:   bannerRepo,
@@ -71,7 +71,7 @@ func (s *blogServiceImpl) FindBlogCardByCategoriesSlug(slug string) []interface{
 }
 
 // convertBlogCardsToInterface converts a slice of BlogCardDto to a slice of empty interfaces
-func (s *blogServiceImpl) convertBlogCardsToInterface(blogCards []dto.BlogCardDto) []interface{} {
+func (s *blogServiceImpl) convertBlogCardsToInterface(blogCards []dto2.BlogCardDto) []interface{} {
 	result := make([]interface{}, len(blogCards))
 	for i, blogCard := range blogCards {
 		result[i] = blogCard
@@ -80,7 +80,7 @@ func (s *blogServiceImpl) convertBlogCardsToInterface(blogCards []dto.BlogCardDt
 }
 
 // interleaveBlogsAndBanners interleaves blog cards and banners
-func interleaveBlogsAndBanners(blogs []dto.BlogCardDto, banners []dto.AdvertisingBannerDto) []interface{} {
+func interleaveBlogsAndBanners(blogs []dto2.BlogCardDto, banners []dto2.AdvertisingBannerDto) []interface{} {
 	var result []interface{}
 	bannerIndex := 0
 	bannerCount := len(banners)
@@ -102,32 +102,32 @@ func interleaveBlogsAndBanners(blogs []dto.BlogCardDto, banners []dto.Advertisin
 
 	return result
 }
-func (s *blogServiceImpl) FindAllBlogForAdmin() []dto.BlogAdminDto {
+func (s *blogServiceImpl) FindAllBlogForAdmin() []dto2.BlogAdminDto {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *blogServiceImpl) FindBlogDetailByAuthorAndSlug(author string, slug string) dto.BlogDetailDto {
+func (s *blogServiceImpl) FindBlogDetailByAuthorAndSlug(author string, slug string) dto2.BlogDetailDto {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []dto.BlogCardDto {
+func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []dto2.BlogCardDto {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto.BlogCardDto {
+func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCardDto {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *blogServiceImpl) RecentPost() []dto.RecentPostBlogDto {
+func (s *blogServiceImpl) RecentPost() []dto2.RecentPostBlogDto {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto.BlogCreateRequestDto) error {
+func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto2.BlogCreateRequestDto) error {
 	// Validate the incoming DTO
 	if err := blogCreateRequestDto.Validate(); err != nil {
 		return fmt.Errorf("validation error: %v", err)
@@ -150,7 +150,7 @@ func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto.BlogCreateRequestD
 	}
 
 	// Generate a unique identifier (UUID)
-	uniqueIdentifier := uuid.New().String()[:12]
+	uniqueIdentifier := uuid.New().String()
 
 	// Prepare the blog title for slug generation
 	nameBlog := blogCreateRequestDto.BlogTitle
@@ -164,7 +164,7 @@ func (s *blogServiceImpl) CreateBlog(blogCreateRequestDto dto.BlogCreateRequestD
 	titleAndCategories := strings.ToLower(strings.ReplaceAll(nameBlog, " ", "-")) + "-" + strings.Join(categoryNames, "-")
 
 	// Generate a descriptive slug and append the UUID
-	slug := utils.Init(titleAndCategories + "-" + uniqueIdentifier)
+	slug := utils.Init("-" + titleAndCategories + "-" + uniqueIdentifier)
 	blog.Slug = slug
 
 	// Check the pinned blogs limit
@@ -201,7 +201,7 @@ func (s *blogServiceImpl) checkPinnedBlogsLimit(authorID int, isPin bool) error 
 	}
 	return nil
 }
-func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto.BlogUpdateRequestDto, id int) {
+func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, id int) {
 	//TODO implement me
 	panic("implement me")
 }

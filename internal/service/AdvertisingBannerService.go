@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
-	"yp-blog-api/models"
-	repositories "yp-blog-api/repository"
+	"yp-blog-api/internal/models"
+	"yp-blog-api/internal/repository"
 )
 
 // AdvertisingBannerService handles the business logic for advertising banners

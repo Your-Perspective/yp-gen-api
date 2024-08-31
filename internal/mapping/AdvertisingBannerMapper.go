@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"yp-blog-api/dto"
-	"yp-blog-api/models"
+	"yp-blog-api/internal/dto"
+	"yp-blog-api/internal/models"
 )
 
 type AdvertisingBannerMapper interface {

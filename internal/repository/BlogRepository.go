@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"time"
-	"yp-blog-api/models"
+	"yp-blog-api/internal/models"
 )
 
 type BlogRepository interface {

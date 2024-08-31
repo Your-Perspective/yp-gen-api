@@ -1,9 +1,9 @@
 package service
 
 import (
-	"yp-blog-api/dto"
-	"yp-blog-api/mapping"
-	"yp-blog-api/repository"
+	"yp-blog-api/internal/dto"
+	"yp-blog-api/internal/mapping"
+	"yp-blog-api/internal/repository"
 )
 
 type CategoryService interface {

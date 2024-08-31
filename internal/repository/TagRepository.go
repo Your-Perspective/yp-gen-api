@@ -1,9 +1,8 @@
 package repositories
 
 import (
-	"yp-blog-api/models"
-
 	"gorm.io/gorm"
+	"yp-blog-api/internal/models"
 )
 
 type TagRepository interface {

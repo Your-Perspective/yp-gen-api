@@ -2,15 +2,14 @@ package controller
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
-	"yp-blog-api/dto"
-	"yp-blog-api/erorr"
-	"yp-blog-api/models"
-	"yp-blog-api/service"
-
-	"github.com/gin-gonic/gin"
+	"yp-blog-api/internal/dto"
+	"yp-blog-api/internal/handler"
+	"yp-blog-api/internal/models"
+	"yp-blog-api/internal/service"
 )
 
 type BlogController struct {
@@ -124,7 +123,7 @@ func (c *BlogController) CreateBlog(ctx *gin.Context) {
 
 	// Bind JSON input to the DTO
 	if err := ctx.ShouldBindJSON(&blogCreateRequestDto); err != nil {
-		var errorDetails erorr.ErrorResponse
+		var errorDetails handler.ErrorResponse
 		errorDetails.Error = "Invalid input"
 
 		// Collect detailed error information

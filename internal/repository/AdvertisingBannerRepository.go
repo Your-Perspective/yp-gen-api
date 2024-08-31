@@ -3,7 +3,7 @@ package repositories
 import (
 	"errors"
 	"gorm.io/gorm"
-	"yp-blog-api/models"
+	"yp-blog-api/internal/models"
 )
 
 // AdvertisingBannerRepository handles database operations for AdvertisingBanner

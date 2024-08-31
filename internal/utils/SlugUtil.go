@@ -30,7 +30,7 @@ func Init(input string) string {
 	normalized = regexp.MustCompile(`[\s/]+`).ReplaceAllString(normalized, "-")
 
 	// Remove any character that is not a letter, number, hyphen, or Khmer character
-	normalized = regexp.MustCompile(`[^a-zA-Z0-9\p{L}-]+`).ReplaceAllString(normalized, "")
+	normalized = regexp.MustCompile(`[^a-zA-Z0-9\p{L}-]+`).ReplaceAllString(normalized, "-")
 
 	// Remove consecutive hyphens
 	normalized = regexp.MustCompile(`-{2,}`).ReplaceAllString(normalized, "-")

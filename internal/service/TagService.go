@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
-	"yp-blog-api/dto"
-	"yp-blog-api/mapping"
-	_ "yp-blog-api/models"
-	"yp-blog-api/repository"
+	"yp-blog-api/internal/dto"
+	"yp-blog-api/internal/mapping"
+	_ "yp-blog-api/internal/mapping"
+	"yp-blog-api/internal/repository"
 )
 
 type TagService interface {

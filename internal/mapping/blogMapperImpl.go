@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"yp-blog-api/dto"
-	"yp-blog-api/models"
+	dto2 "yp-blog-api/internal/dto"
+	models2 "yp-blog-api/internal/models"
 )
 
 type blogMapperImpl struct{}
@@ -15,8 +15,8 @@ func NewBlogMapper() BlogMapper {
 }
 
 // BlogToBlogCardDto Map multiple Blog entities to BlogCardDto
-func (m *blogMapperImpl) BlogToBlogCardDto(blogs []models.Blog) []dto.BlogCardDto {
-	var dtos []dto.BlogCardDto
+func (m *blogMapperImpl) BlogToBlogCardDto(blogs []models2.Blog) []dto2.BlogCardDto {
+	var dtos []dto2.BlogCardDto
 	for _, blog := range blogs {
 		dtos = append(dtos, m.BlogToBlogCardDtoSingle(blog))
 	}
@@ -24,8 +24,8 @@ func (m *blogMapperImpl) BlogToBlogCardDto(blogs []models.Blog) []dto.BlogCardDt
 }
 
 // BlogToBlogCardDtoSingle Map a single Blog entity to BlogCardDto
-func (m *blogMapperImpl) BlogToBlogCardDtoSingle(blog models.Blog) dto.BlogCardDto {
-	return dto.BlogCardDto{
+func (m *blogMapperImpl) BlogToBlogCardDtoSingle(blog models2.Blog) dto2.BlogCardDto {
+	return dto2.BlogCardDto{
 		Slug:                 blog.Slug,
 		Thumbnail:            blog.Thumbnail,
 		Summary:              blog.Summary,
@@ -33,14 +33,14 @@ func (m *blogMapperImpl) BlogToBlogCardDtoSingle(blog models.Blog) dto.BlogCardD
 		FormattedCountViewer: m.formatCountViewer(blog.CountViewer),
 		MinRead:              blog.MinRead,
 		Published:            blog.Published,
-		Author:               dto.AuthorCardDto{UserName: blog.Author.UserName},
+		Author:               dto2.AuthorCardDto{UserName: blog.Author.UserName},
 		CreatedAt:            GetTimeAgo(blog.CreatedAt),
 	}
 }
 
 // BlogToBlogDetailDto Map a single Blog entity to BlogDetailDto
-func (m *blogMapperImpl) BlogToBlogDetailDto(blog models.Blog) dto.BlogDetailDto {
-	return dto.BlogDetailDto{
+func (m *blogMapperImpl) BlogToBlogDetailDto(blog models2.Blog) dto2.BlogDetailDto {
+	return dto2.BlogDetailDto{
 		Slug:                 blog.Slug,
 		BlogContent:          blog.BlogContent,
 		Summary:              blog.Summary,
@@ -49,7 +49,7 @@ func (m *blogMapperImpl) BlogToBlogDetailDto(blog models.Blog) dto.BlogDetailDto
 		FormattedCountViewer: m.formatCountViewer(blog.CountViewer),
 		MinRead:              blog.MinRead,
 		Published:            blog.Published,
-		Author:               dto.AuthorCardDetailDto{UserName: blog.Author.UserName},
+		Author:               dto2.AuthorCardDetailDto{UserName: blog.Author.UserName},
 		CreatedAt:            GetTimeAgo(blog.CreatedAt),
 		LastModifiedTimeAgo:  GetTimeAgo(blog.UpdatedAt),
 		Categories:           mapCategories(blog.Categories),
@@ -58,8 +58,8 @@ func (m *blogMapperImpl) BlogToBlogDetailDto(blog models.Blog) dto.BlogDetailDto
 }
 
 // BlogToRecentPostBlogDto Map a single Blog entity to RecentPostBlogDto
-func (m *blogMapperImpl) BlogToRecentPostBlogDto(blog models.Blog) dto.RecentPostBlogDto {
-	return dto.RecentPostBlogDto{
+func (m *blogMapperImpl) BlogToRecentPostBlogDto(blog models2.Blog) dto2.RecentPostBlogDto {
+	return dto2.RecentPostBlogDto{
 		BlogTitle: blog.BlogTitle,
 		Slug:      blog.Slug,
 		TimeAgo:   GetTimeAgo(blog.CreatedAt),
@@ -67,7 +67,7 @@ func (m *blogMapperImpl) BlogToRecentPostBlogDto(blog models.Blog) dto.RecentPos
 }
 
 // ToTopAuthorDTO Map an array of results to TopAuthorDto
-func (m *blogMapperImpl) ToTopAuthorDTO(results []interface{}) *dto.TopAuthorDto {
+func (m *blogMapperImpl) ToTopAuthorDTO(results []interface{}) *dto2.TopAuthorDto {
 	if len(results) != 4 {
 		return nil
 	}
@@ -76,7 +76,7 @@ func (m *blogMapperImpl) ToTopAuthorDTO(results []interface{}) *dto.TopAuthorDto
 	totalViews, _ := results[2].(int64)
 	profileImage, _ := results[3].(string)
 
-	return &dto.TopAuthorDto{
+	return &dto2.TopAuthorDto{
 		Username:            username,
 		Bio:                 bio,
 		FormattedTotalViews: m.formatTotalCountViewer(totalViews),
@@ -85,8 +85,8 @@ func (m *blogMapperImpl) ToTopAuthorDTO(results []interface{}) *dto.TopAuthorDto
 }
 
 // ToTopAuthorDTOList Map a list of results to a list of TopAuthorDto
-func (m *blogMapperImpl) ToTopAuthorDTOList(results [][]interface{}) []*dto.TopAuthorDto {
-	var dtos []*dto.TopAuthorDto
+func (m *blogMapperImpl) ToTopAuthorDTOList(results [][]interface{}) []*dto2.TopAuthorDto {
+	var dtos []*dto2.TopAuthorDto
 	for _, result := range results {
 		dtos = append(dtos, m.ToTopAuthorDTO(result))
 	}
@@ -94,8 +94,8 @@ func (m *blogMapperImpl) ToTopAuthorDTOList(results [][]interface{}) []*dto.TopA
 }
 
 // CreateBlogDtoToBlog Map BlogCreateRequestDto to Blog entity
-func (m *blogMapperImpl) CreateBlogDtoToBlog(dto dto.BlogCreateRequestDto) models.Blog {
-	return models.Blog{
+func (m *blogMapperImpl) CreateBlogDtoToBlog(dto dto2.BlogCreateRequestDto) models2.Blog {
+	return models2.Blog{
 		BlogTitle:   dto.BlogTitle,
 		Published:   dto.Published,
 		BlogContent: dto.BlogContent,
@@ -109,7 +109,7 @@ func (m *blogMapperImpl) CreateBlogDtoToBlog(dto dto.BlogCreateRequestDto) model
 }
 
 // UpdateBlog Update an existing Blog entity with BlogUpdateRequestDto
-func (m *blogMapperImpl) UpdateBlog(blog *models.Blog, dto dto.BlogUpdateRequestDto) {
+func (m *blogMapperImpl) UpdateBlog(blog *models2.Blog, dto dto2.BlogUpdateRequestDto) {
 	if dto.BlogTitle != "" {
 		blog.BlogTitle = dto.BlogTitle
 	}
@@ -123,11 +123,11 @@ func (m *blogMapperImpl) UpdateBlog(blog *models.Blog, dto dto.BlogUpdateRequest
 }
 
 // BlogDtoToBlogAdminDto Map a list of Blog entities to BlogAdminDto
-func (m *blogMapperImpl) BlogDtoToBlogAdminDto(blogs []models.Blog) []dto.BlogAdminDto {
-	var dtos []dto.BlogAdminDto
+func (m *blogMapperImpl) BlogDtoToBlogAdminDto(blogs []models2.Blog) []dto2.BlogAdminDto {
+	var dtos []dto2.BlogAdminDto
 	for range blogs {
 		// Assuming you have defined BlogAdminDto struct elsewhere
-		dtos = append(dtos, dto.BlogAdminDto{
+		dtos = append(dtos, dto2.BlogAdminDto{
 			// Map fields accordingly
 		})
 	}
@@ -151,10 +151,10 @@ func (m *blogMapperImpl) formatTotalCountViewer(countViewer int64) string {
 }
 
 // Mapping functions for categories and tags
-func mapCategories(categories []models.Category) []dto.CategoryDto {
-	var dtos []dto.CategoryDto
+func mapCategories(categories []models2.Category) []dto2.CategoryDto {
+	var dtos []dto2.CategoryDto
 	for _, category := range categories {
-		dtos = append(dtos, dto.CategoryDto{
+		dtos = append(dtos, dto2.CategoryDto{
 			ID:    int64(category.ID),
 			Slug:  category.Slug,
 			Title: category.Title,
@@ -163,10 +163,10 @@ func mapCategories(categories []models.Category) []dto.CategoryDto {
 	return dtos
 }
 
-func mapTags(tags []models.Tag) []dto.TagDto {
-	var dtos []dto.TagDto
+func mapTags(tags []models2.Tag) []dto2.TagDto {
+	var dtos []dto2.TagDto
 	for _, tag := range tags {
-		dtos = append(dtos, dto.TagDto{
+		dtos = append(dtos, dto2.TagDto{
 			ID:    int64(tag.ID),
 			Title: tag.Title,
 		})
