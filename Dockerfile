@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Enable CGO and build the Go app
-RUN CGO_ENABLED=1 GOOS=linux go build -o /go/bin/yp-blog-api ./cmd/api
+RUN CGO_ENABLED=1 GOOS=linux go build -o /go/bin/yp-blog-api ./
 
 # Step 2: Use a compatible base image for running the application
 FROM ubuntu:22.04
@@ -24,7 +24,11 @@ WORKDIR /root/
 
 # Copy the pre-built binary file from the builder stage
 COPY --from=builder /go/bin/yp-blog-api .
-
+COPY .env.fly ./
+# Copy the SQLite database file from the local machine to the container
+COPY test.db /root/test.db
+ARG APP_ENV=fly
+ENV APP_ENV=${APP_ENV}
 # Expose port 9090 to the outside world
 EXPOSE 9090
 

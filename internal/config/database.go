@@ -16,7 +16,7 @@ var DB *gorm.DB
 func InitDatabase() {
 	var err error
 	// Use "sqlite" as the driver name with modernc.org/sqlite
-	sqlDB, err := sql.Open("sqlite", "test.db")
+	sqlDB, err := sql.Open("sqlite", "identifier.sqlite")
 	if err != nil {
 		log.Fatalf("Failed to open SQLite database: %v", err)
 	}

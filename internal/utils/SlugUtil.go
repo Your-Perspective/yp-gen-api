@@ -33,13 +33,13 @@ func RemoveKhmerCharacters(input string) string {
 	}, input)
 }
 
-// Generates a 9-digit unique identifier
+// GenerateUniqueIdentifier Generates a 9-digit unique identifier
 func GenerateUniqueIdentifier() string {
-	rand.Seed(time.Now().UnixNano())
+	rand.Int63n(time.Now().UnixNano())
 	return fmt.Sprintf("%09d", rand.Intn(1e9))
 }
 
-// Init generates a slug using the gosimple/slug package
+// Init generates a slug using the simple/slug package
 func Init(input string) string {
 	return slug.Make(input)
 }

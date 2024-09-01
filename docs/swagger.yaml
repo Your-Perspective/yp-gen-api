@@ -1,0 +1,370 @@
+definitions:
+  dto.BlogCreateRequestDto:
+    properties:
+      blogContent:
+        type: string
+      blogTitle:
+        maxLength: 500
+        type: string
+      categoryIds:
+        items:
+          type: integer
+        type: array
+      id:
+        type: integer
+      isPin:
+        type: boolean
+      minRead:
+        minimum: 1
+        type: integer
+      published:
+        type: boolean
+      slug:
+        type: string
+      summary:
+        maxLength: 500
+        type: string
+      tags:
+        items:
+          type: integer
+        type: array
+      thumbnail:
+        maxLength: 255
+        type: string
+    required:
+    - blogContent
+    - blogTitle
+    - minRead
+    - published
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+      fields:
+        additionalProperties:
+          type: string
+        description: This field will hold the detailed validation errors
+        type: object
+      message:
+        type: string
+    type: object
+  handler.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Blog:
+    properties:
+      author:
+        $ref: '#/definitions/models.User'
+      authorID:
+        type: integer
+      blogContent:
+        type: string
+      blogTitle:
+        type: string
+      categories:
+        items:
+          $ref: '#/definitions/models.Category'
+        type: array
+      countViewer:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: integer
+      isDeleted:
+        type: boolean
+      isPin:
+        type: boolean
+      minRead:
+        type: integer
+      parent:
+        $ref: '#/definitions/models.Blog'
+      parentID:
+        type: integer
+      published:
+        type: boolean
+      slug:
+        type: string
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      thumbnail:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.Category:
+    properties:
+      blogs:
+        items:
+          $ref: '#/definitions/models.Blog'
+        type: array
+      id:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  models.Tag:
+    properties:
+      blogs:
+        items:
+          $ref: '#/definitions/models.Blog'
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: integer
+      isDeleted:
+        type: boolean
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.User:
+    properties:
+      about:
+        type: string
+      bio:
+        type: string
+      confirmationToken:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      isVerified:
+        type: boolean
+      password:
+        description: Provide a default value
+        type: string
+      profileImage:
+        type: string
+      resetToken:
+        type: string
+      top3Count:
+        type: integer
+      updatedAt:
+        type: string
+      userName:
+        description: Provide a default value
+        type: string
+      verifiedByAdmin:
+        type: boolean
+    type: object
+info:
+  contact: {}
+  description: backend service api restfull using Gin framework
+  title: backend service for blog api
+  version: "1.0"
+paths:
+  /api/blogs:
+    post:
+      consumes:
+      - application/json
+      description: Create a new blog with the provided details
+      parameters:
+      - description: Blog data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BlogCreateRequestDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Create a new blog
+      tags:
+      - Blog
+  /api/blogs-admin:
+    get:
+      description: Get the list of all blogs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Blog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get all blogs
+      tags:
+      - Blog
+    post:
+      consumes:
+      - application/json
+      description: Create a new blog with the provided details
+      parameters:
+      - description: Blog data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/models.Blog'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Create a new blog
+      tags:
+      - Blog
+  /api/blogs-admin/{id}:
+    delete:
+      description: Delete a blog by its ID
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Delete a blog
+      tags:
+      - Blog
+    get:
+      description: Get details of a blog by its ID
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get a blog by ID
+      tags:
+      - Blog
+    put:
+      consumes:
+      - application/json
+      description: Update a blog by its ID
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Blog data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/models.Blog'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Update an existing blog
+      tags:
+      - Blog
+  /api/blogs/:
+    get:
+      description: List all blogs under a specific category identified by its slug
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Blog'
+            type: array
+      summary: List blogs by category slug
+      tags:
+      - Blog
+  /api/blogs/{categoriesSlug}:
+    get:
+      description: List all blogs under a specific category identified by its slug
+      parameters:
+      - description: Category Slug
+        in: path
+        name: categoriesSlug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Blog'
+            type: array
+      summary: List blogs by category slug
+      tags:
+      - Blog
+swagger: "2.0"

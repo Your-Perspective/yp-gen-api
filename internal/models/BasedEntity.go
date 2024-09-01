@@ -14,7 +14,7 @@ type BasedEntity struct {
 }
 
 // BeforeCreate is a GORM hook that automatically sets the CreatedAt field
-func (e *BasedEntity) BeforeCreate(tx *gorm.DB) (err error) {
+func (e *BasedEntity) BeforeCreate(*gorm.DB) (err error) {
 	if e.CreatedAt.IsZero() {
 		e.CreatedAt = time.Now()
 	}
@@ -22,7 +22,7 @@ func (e *BasedEntity) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // BeforeUpdate is a GORM hook that automatically sets the LastModifiedAt field
-func (e *BasedEntity) BeforeUpdate(tx *gorm.DB) (err error) {
+func (e *BasedEntity) BeforeUpdate(*gorm.DB) (err error) {
 	e.LastModifiedAt = time.Now()
 	return
 }
