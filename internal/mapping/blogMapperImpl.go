@@ -179,14 +179,35 @@ func mapTags(tags []models2.Tag) []dto2.TagDto {
 }
 
 // GetTimeAgo TimeAgo utility functions
+// GetTimeAgo returns a human-readable string representing the time ago from the given time.
 func GetTimeAgo(t time.Time) string {
-	duration := time.Since(t)
+	now := time.Now()
+	duration := now.Sub(t)
+
 	switch {
-	case duration.Hours() < 24:
-		return fmt.Sprintf("%d hours ago", int(duration.Hours()))
-	case duration.Hours() < 48:
-		return "Yesterday"
-	default:
+	case duration.Hours() > 24*365:
+		// More than a year ago: show year, month, and day
+		return t.Format("2006-01-02")
+	case duration.Hours() > 24*7:
+		// More than 7 days ago: show month and day
+		return t.Format("01-02")
+	case duration.Hours() >= 24:
+		// More than 1 day ago: show the number of days ago
 		return fmt.Sprintf("%d days ago", int(duration.Hours()/24))
+	case duration.Hours() >= 1:
+		// More than 1 hour ago: show the number of hours ago
+		return fmt.Sprintf("%d hours ago", int(duration.Hours()))
+	case duration.Minutes() >= 1:
+		// More than 1 minute ago: show the number of minutes ago
+		return fmt.Sprintf("%d minutes ago", int(duration.Minutes()))
+	default:
+		// Less than 1 minute ago: show the number of seconds ago
+		return fmt.Sprintf("%d seconds ago", int(duration.Seconds()))
 	}
+}
+
+// GetLastModifiedTimeAgo returns a human-readable string representing the time ago from the given time.
+// This is a wrapper function around GetTimeAgo.
+func GetLastModifiedTimeAgo(t time.Time) string {
+	return GetTimeAgo(t)
 }

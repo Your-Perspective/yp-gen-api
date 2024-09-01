@@ -236,3 +236,21 @@ func (ctrl *BlogController) GetBlogDetailByAuthorAndSlug(c *gin.Context) {
 	// Respond with the blog detail
 	c.JSON(http.StatusOK, blogDetail)
 }
+
+// GetRecentPosts handles GET requests to fetch recent blog posts
+// @Summary blog recent post
+// @Description Get the most recent and popular blog posts
+// @Tags Blog
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} dto.RecentPostBlogDto
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Router /api/blogs/recent-post [get]
+func (ctrl *BlogController) GetRecentPosts(c *gin.Context) {
+	// Call the service to get the recent posts
+	recentPosts := ctrl.blogService.RecentPost()
+
+	// Respond with the result in JSON format
+	c.JSON(http.StatusOK, recentPosts)
+}

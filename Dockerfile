@@ -24,9 +24,12 @@ WORKDIR /root/
 
 # Copy the pre-built binary file from the builder stage
 COPY --from=builder /go/bin/yp-blog-api .
+
+# Use the volume mounted at /data for SQLite storage
+ENV SQLITE_DB_PATH=/root/data/test.db
+COPY ./data/test.db /root/data/test.db
+# Ensure the .env.fly is copied to the container
 COPY .env.fly ./
-# Copy the SQLite database file from the local machine to the container
-COPY test.db /root/test.db
 ARG APP_ENV=fly
 ENV APP_ENV=${APP_ENV}
 # Expose port 9090 to the outside world

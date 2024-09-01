@@ -214,7 +214,19 @@ func (s *blogServiceImpl) checkPinnedBlogsLimit(authorID int, isPin bool) error 
 	return nil
 }
 
-// NewBlogService creates a new instance of BlogService.
+// RecentPost NewBlogService creates a new instance of BlogService.
+func (s *blogServiceImpl) RecentPost() []dto2.RecentPostBlogDto {
+	// Fetch all blogs where Published is true and Deleted is false, ordered by CreatedAt descending
+	blogs, _ := s.blogRepo.FindAllByPublishedAndNotDeletedOrderByCreatedAtDesc()
+
+	// Map the blogs to RecentPostBlogDto
+	var recentPosts []dto2.RecentPostBlogDto
+	for _, blog := range blogs {
+		recentPosts = append(recentPosts, s.blogMapper.BlogToRecentPostBlogDto(blog))
+	}
+
+	return recentPosts
+}
 
 // Save saves a new blog to the repository.
 func (s *blogServiceImpl) Save(blog models.Blog) (models.Blog, error) {
@@ -251,11 +263,6 @@ func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []
 }
 
 func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCardDto {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *blogServiceImpl) RecentPost() []dto2.RecentPostBlogDto {
 	//TODO implement me
 	panic("implement me")
 }

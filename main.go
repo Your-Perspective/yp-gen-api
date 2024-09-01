@@ -29,7 +29,7 @@ func main() {
 	docs.SwaggerInfo.Description = os.Getenv("SWAGGER_DESCRIPTION")
 	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
 	// Determine the scheme based on the SWAGGER_HOST
-	if strings.HasPrefix(os.Getenv("SWAGGER_HOST"), "https://") {
+	if strings.HasPrefix(os.Getenv("SWAGGER_HOST"), "yp-blog-api.fly.dev") {
 		docs.SwaggerInfo.Schemes = []string{"https"}
 	} else {
 		docs.SwaggerInfo.Schemes = []string{"http"}

@@ -35,7 +35,7 @@ func (r *blogRepositoryImpl) FindAllByPublishedAndNotDeletedOrderByCountViewerDe
 
 func (r *blogRepositoryImpl) FindAllByPublishedAndNotDeletedOrderByCreatedAtDesc() ([]models.Blog, error) {
 	var blogs []models.Blog
-	err := r.db.Where("published = ? AND deleted_at IS NULL", true).
+	err := r.db.Where("published = ? AND is_deleted IS FALSE", true).
 		Order("created_at DESC").
 		Find(&blogs).Error
 	return blogs, err

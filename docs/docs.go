@@ -285,6 +285,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/blogs/recent-post": {
+            "get": {
+                "description": "Get the most recent and popular blog posts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "blog recent post",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.RecentPostBlogDto"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/blogs/{categoriesSlug}": {
             "get": {
                 "description": "List all blogs under a specific category identified by its slug",
@@ -370,6 +408,20 @@ const docTemplate = `{
                 "thumbnail": {
                     "type": "string",
                     "maxLength": 255
+                }
+            }
+        },
+        "dto.RecentPostBlogDto": {
+            "type": "object",
+            "properties": {
+                "blogTitle": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "timeAgo": {
+                    "type": "string"
                 }
             }
         },
@@ -506,6 +558,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "title": {
+                    "description": "Title     string    ` + "`" + `gorm:\"size:100;not null;unique\"` + "`" + `",
                     "type": "string"
                 },
                 "updatedAt": {

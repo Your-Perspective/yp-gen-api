@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -15,8 +16,12 @@ var DB *gorm.DB
 // InitDatabase initializes the database connection
 func InitDatabase() {
 	var err error
+	dbPath := os.Getenv("SQLITE_DB_PATH")
+	if dbPath == "" {
+		dbPath = "./data/test.db" // Default path in case the environment variable is not set
+	}
 	// Use "sqlite" as the driver name with modernc.org/sqlite
-	sqlDB, err := sql.Open("sqlite", "identifier.sqlite")
+	sqlDB, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatalf("Failed to open SQLite database: %v", err)
 	}

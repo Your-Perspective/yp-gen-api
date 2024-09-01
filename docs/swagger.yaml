@@ -37,6 +37,15 @@ definitions:
     - minRead
     - published
     type: object
+  dto.RecentPostBlogDto:
+    properties:
+      blogTitle:
+        type: string
+      slug:
+        type: string
+      timeAgo:
+        type: string
+    type: object
   handler.ErrorResponse:
     properties:
       error:
@@ -125,6 +134,7 @@ definitions:
       isDeleted:
         type: boolean
       title:
+        description: Title     string    `gorm:"size:100;not null;unique"`
         type: string
       updatedAt:
         type: string
@@ -365,6 +375,31 @@ paths:
               $ref: '#/definitions/models.Blog'
             type: array
       summary: List blogs by category slug
+      tags:
+      - Blog
+  /api/blogs/recent-post:
+    get:
+      consumes:
+      - application/json
+      description: Get the most recent and popular blog posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.RecentPostBlogDto'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: blog recent post
       tags:
       - Blog
 swagger: "2.0"

@@ -28,6 +28,7 @@ func SetupRouter(blogService service.BlogService) *gin.Engine {
 	router.GET("/api/blogs/", blogController.ListAllByCategoriesSlug)
 	router.GET("/api/blogs/@:author/:slug", blogController.GetBlogDetailByAuthorAndSlug) // Updated route
 	router.POST("/api/blogs", blogController.CreateBlog)
+	router.GET("/api/blogs/recent-posts", blogController.GetRecentPosts)
 
 	return router
 }
