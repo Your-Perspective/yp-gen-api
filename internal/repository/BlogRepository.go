@@ -2,13 +2,14 @@ package repositories
 
 import (
 	"time"
+	"yp-blog-api/internal/dto"
 	"yp-blog-api/internal/models"
 )
 
 type BlogRepository interface {
 	FindBlogsByCategorySlug(categorySlug string) ([]models.Blog, error)
 	FindAllByPublishedAndNotDeletedOrderByCountViewerDescCreatedAtDesc() ([]models.Blog, error)
-	FindAllByPublishedAndNotDeletedOrderByCreatedAtDesc() ([]models.Blog, error)
+	FindRecentPosts() ([]dto.RecentPostBlogDto, error)
 	FindRandom6ByUsername(username string) ([]models.Blog, error)
 	FindTop6ByCategorySlug(categorySlug string) ([]models.Blog, error)
 	FindByUsernameAndSlug(username, slug string) (models.Blog, error)

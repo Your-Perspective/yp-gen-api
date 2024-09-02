@@ -47,7 +47,6 @@ func main() {
 	}
 
 	// Initialize the repositories
-	blogRepo := repositories.NewBlogRepository(config.DB)
 	bannerRepo := repositories.NewAdvertisingBannerRepository(config.DB)
 	tagRepo := repositories.NewTagRepository(config.DB)
 	categoryRepo := repositories.NewCategoryRepository(config.DB)
@@ -55,6 +54,7 @@ func main() {
 	// Initialize the mappers
 	blogMapper := mapper.NewBlogMapper()
 	bannerMapper := mapper.NewAdvertisingBannerMapper()
+	blogRepo := repositories.NewBlogRepository(config.DB, blogMapper)
 
 	// Initialize the service with all required dependencies
 	blogService := service.NewBlogService(blogRepo, bannerRepo, blogMapper, bannerMapper, categoryRepo, tagRepo)

@@ -248,9 +248,58 @@ func (ctrl *BlogController) GetBlogDetailByAuthorAndSlug(c *gin.Context) {
 // @Failure 500 {object} handler.ErrorResponse
 // @Router /api/blogs/recent-post [get]
 func (ctrl *BlogController) GetRecentPosts(c *gin.Context) {
-	// Call the service to get the recent posts
-	recentPosts := ctrl.blogService.RecentPost()
-
-	// Respond with the result in JSON format
+	recentPosts, err := ctrl.blogService.RecentPost()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, recentPosts)
+}
+
+// Find6BlogsByCategoriesSlug godoc
+// @Summary Get top 6 blogs by category slug
+// @Description Retrieve top 6 blogs by category slug, ordered randomly.
+// @Tags Blog
+// @Param slug path string true "Category Slug"
+// @Produce  json
+// @Success 200 {array} dto.BlogCardDto
+// @Router /api/blogs/category/{slug}/top6 [get]
+func (ctrl *BlogController) Find6BlogsByCategoriesSlug(c *gin.Context) {
+	slug := c.Param("slug")
+	if slug == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	blogCardDtos := ctrl.blogService.Find6BlogsByCategoriesSlug(slug)
+	if len(blogCardDtos) == 0 {
+		c.JSON(http.StatusNoContent, gin.H{"message": "No blogs found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, blogCardDtos)
+}
+
+// Find6BlogsByUsernameAndCountViewer godoc
+// @Summary Get top 6 blogs by username and count viewer
+// @Description Retrieve top 6 blogs by username, ordered randomly, and including viewer count.
+// @Tags Blog
+// @Param username path string true "Username"
+// @Produce  json
+// @Success 200 {array} dto.BlogCardDto
+// @Router /api/blogs/user/{username}/top6 [get]
+func (ctrl *BlogController) Find6BlogsByUsernameAndCountViewer(c *gin.Context) {
+	username := c.Param("username")
+	if username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	blogCardDtos := ctrl.blogService.Find6BlogsByUsernameAndCountViewer(username)
+	if len(blogCardDtos) == 0 {
+		c.JSON(http.StatusNoContent, gin.H{"message": "No blogs found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, blogCardDtos)
 }

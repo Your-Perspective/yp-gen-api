@@ -1,4 +1,32 @@
 definitions:
+  dto.AuthorCardDto:
+    properties:
+      profileImage:
+        type: string
+      userName:
+        type: string
+    type: object
+  dto.BlogCardDto:
+    properties:
+      author:
+        $ref: '#/definitions/dto.AuthorCardDto'
+      blogTitle:
+        type: string
+      createdAt:
+        type: string
+      formattedCountViewer:
+        type: string
+      minRead:
+        type: integer
+      published:
+        type: boolean
+      slug:
+        type: string
+      summary:
+        type: string
+      thumbnail:
+        type: string
+    type: object
   dto.BlogCreateRequestDto:
     properties:
       blogContent:
@@ -39,11 +67,20 @@ definitions:
     type: object
   dto.RecentPostBlogDto:
     properties:
+      author:
+        $ref: '#/definitions/dto.UserDto'
       blogTitle:
         type: string
       slug:
         type: string
       timeAgo:
+        type: string
+    type: object
+  dto.UserDto:
+    properties:
+      profileImage:
+        type: string
+      userName:
         type: string
     type: object
   handler.ErrorResponse:
@@ -377,6 +414,27 @@ paths:
       summary: List blogs by category slug
       tags:
       - Blog
+  /api/blogs/category/{slug}/top6:
+    get:
+      description: Retrieve top 6 blogs by category slug, ordered randomly.
+      parameters:
+      - description: Category Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.BlogCardDto'
+            type: array
+      summary: Get top 6 blogs by category slug
+      tags:
+      - Blog
   /api/blogs/recent-post:
     get:
       consumes:
@@ -400,6 +458,28 @@ paths:
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       summary: blog recent post
+      tags:
+      - Blog
+  /api/blogs/user/{username}/top6:
+    get:
+      description: Retrieve top 6 blogs by username, ordered randomly, and including
+        viewer count.
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.BlogCardDto'
+            type: array
+      summary: Get top 6 blogs by username and count viewer
       tags:
       - Blog
 swagger: "2.0"

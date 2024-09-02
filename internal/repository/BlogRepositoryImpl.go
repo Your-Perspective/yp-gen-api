@@ -4,16 +4,19 @@ import (
 	"errors"
 	"gorm.io/gorm"
 	"time"
+	"yp-blog-api/internal/dto"
+	mapper "yp-blog-api/internal/mapping"
 	"yp-blog-api/internal/models"
 )
 
 type blogRepositoryImpl struct {
-	db *gorm.DB
+	db     *gorm.DB
+	mapper mapper.BlogMapper
 }
 
 // NewBlogRepository creates a new instance of BlogRepositoryImpl.
-func NewBlogRepository(db *gorm.DB) BlogRepository {
-	return &blogRepositoryImpl{db: db}
+func NewBlogRepository(db *gorm.DB, mapper mapper.BlogMapper) BlogRepository {
+	return &blogRepositoryImpl{db: db, mapper: mapper}
 }
 
 func (r *blogRepositoryImpl) FindBlogsByCategorySlug(categorySlug string) ([]models.Blog, error) {
@@ -27,40 +30,55 @@ func (r *blogRepositoryImpl) FindBlogsByCategorySlug(categorySlug string) ([]mod
 }
 func (r *blogRepositoryImpl) FindAllByPublishedAndNotDeletedOrderByCountViewerDescCreatedAtDesc() ([]models.Blog, error) {
 	var blogs []models.Blog
-	err := r.db.Where("published = ? AND is_deleted IS FALSE", true).
+	err := r.db.Preload("Author").Where("published = ? AND is_deleted IS FALSE", true).
 		Order("count_viewer DESC, created_at DESC").
 		Find(&blogs).Error
 	return blogs, err
 }
 
-func (r *blogRepositoryImpl) FindAllByPublishedAndNotDeletedOrderByCreatedAtDesc() ([]models.Blog, error) {
+func (r *blogRepositoryImpl) FindRecentPosts() ([]dto.RecentPostBlogDto, error) {
 	var blogs []models.Blog
-	err := r.db.Where("published = ? AND is_deleted IS FALSE", true).
+	err := r.db.Preload("Author").
+		Where("published = ? AND is_deleted = false", true).
 		Order("created_at DESC").
 		Find(&blogs).Error
-	return blogs, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	var recentPosts []dto.RecentPostBlogDto
+	for _, blog := range blogs {
+		recentPostDto := r.mapper.BlogToRecentPostBlogDto(blog)
+		recentPosts = append(recentPosts, recentPostDto)
+	}
+
+	return recentPosts, nil
 }
 
 func (r *blogRepositoryImpl) FindRandom6ByUsername(username string) ([]models.Blog, error) {
 	var blogs []models.Blog
-	err := r.db.Joins("JOIN users u ON u.id = blogs.author_id").
-		Where("u.user_name = ? AND blogs.published = ? AND blogs.deleted_at IS NULL", username, true).
-		Order("RANDOM()").
-		Limit(6).
-		Find(&blogs).Error
+	err := r.db.Preload("Author"). // Eager load the Author relation
+					Joins("JOIN users u ON u.id = blogs.author_id").
+					Where("u.user_name = ? AND blogs.published = ? AND blogs.is_deleted = false", username, true).
+					Order("RANDOM()").
+					Limit(6).
+					Find(&blogs).Error
 	return blogs, err
 }
 
 func (r *blogRepositoryImpl) FindTop6ByCategorySlug(categorySlug string) ([]models.Blog, error) {
 	var blogs []models.Blog
-	err := r.db.Joins("JOIN blog_categories bc ON bc.blog_id = blogs.id").
-		Joins("JOIN categories c ON bc.category_id = c.id").
-		Where("c.slug = ? AND blogs.published = ? AND blogs.deleted_at IS NULL", categorySlug, true).
-		Order("RANDOM()").
-		Limit(6).
-		Find(&blogs).Error
+	err := r.db.Preload("Author"). // Eager load the Author relation
+					Joins("JOIN blog_categories bc ON bc.blog_id = blogs.id").
+					Joins("JOIN categories c ON bc.category_id = c.id").
+					Where("c.slug = ? AND blogs.published = ? AND blogs.is_deleted = false", categorySlug, true).
+					Order("RANDOM()").
+					Limit(6).
+					Find(&blogs).Error
 	return blogs, err
 }
+
 func (r *blogRepositoryImpl) FindByUsernameAndSlug(username, slug string) (models.Blog, error) {
 	var blog models.Blog
 	err := r.db.Preload("Author"). // Preloads the related Author (User) model

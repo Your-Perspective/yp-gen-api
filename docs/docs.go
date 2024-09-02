@@ -285,6 +285,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/blogs/category/{slug}/top6": {
+            "get": {
+                "description": "Retrieve top 6 blogs by category slug, ordered randomly.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get top 6 blogs by category slug",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BlogCardDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/blogs/recent-post": {
             "get": {
                 "description": "Get the most recent and popular blog posts",
@@ -318,6 +350,38 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/blogs/user/{username}/top6": {
+            "get": {
+                "description": "Retrieve top 6 blogs by username, ordered randomly, and including viewer count.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get top 6 blogs by username and count viewer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BlogCardDto"
+                            }
                         }
                     }
                 }
@@ -357,6 +421,49 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AuthorCardDto": {
+            "type": "object",
+            "properties": {
+                "profileImage": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BlogCardDto": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.AuthorCardDto"
+                },
+                "blogTitle": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "formattedCountViewer": {
+                    "type": "string"
+                },
+                "minRead": {
+                    "type": "integer"
+                },
+                "published": {
+                    "type": "boolean"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "thumbnail": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.BlogCreateRequestDto": {
             "type": "object",
             "required": [
@@ -414,6 +521,9 @@ const docTemplate = `{
         "dto.RecentPostBlogDto": {
             "type": "object",
             "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.UserDto"
+                },
                 "blogTitle": {
                     "type": "string"
                 },
@@ -421,6 +531,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "timeAgo": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserDto": {
+            "type": "object",
+            "properties": {
+                "profileImage": {
+                    "type": "string"
+                },
+                "userName": {
                     "type": "string"
                 }
             }

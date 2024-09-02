@@ -214,18 +214,15 @@ func (s *blogServiceImpl) checkPinnedBlogsLimit(authorID int, isPin bool) error 
 	return nil
 }
 
-// RecentPost NewBlogService creates a new instance of BlogService.
-func (s *blogServiceImpl) RecentPost() []dto2.RecentPostBlogDto {
-	// Fetch all blogs where Published is true and Deleted is false, ordered by CreatedAt descending
-	blogs, _ := s.blogRepo.FindAllByPublishedAndNotDeletedOrderByCreatedAtDesc()
-
-	// Map the blogs to RecentPostBlogDto
-	var recentPosts []dto2.RecentPostBlogDto
-	for _, blog := range blogs {
-		recentPosts = append(recentPosts, s.blogMapper.BlogToRecentPostBlogDto(blog))
+func (s *blogServiceImpl) RecentPost() ([]dto2.RecentPostBlogDto, error) {
+	recentPosts, err := s.blogRepo.FindRecentPosts()
+	if err != nil {
+		return nil, err
 	}
 
-	return recentPosts
+	fmt.Printf("Recent posts: %+v\n", recentPosts) // Debug log
+
+	return recentPosts, nil
 }
 
 // Save saves a new blog to the repository.
@@ -257,22 +254,34 @@ func (s *blogServiceImpl) FindAllBlogForAdmin() []dto2.BlogAdminDto {
 	//TODO implement me
 	panic("implement me")
 }
+
 func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []dto2.BlogCardDto {
-	//TODO implement me
-	panic("implement me")
+	blogs, err := s.blogRepo.FindRandom6ByUsername(username)
+	if err != nil {
+		// Handle the error, possibly log it and return an empty list
+		return []dto2.BlogCardDto{}
+	}
+
+	// Use the mapper to convert the blogs to BlogCardDto
+	blogCardDtos := s.blogMapper.BlogToBlogCardDto(blogs)
+
+	return blogCardDtos
 }
 
 func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCardDto {
-	//TODO implement me
-	panic("implement me")
+	blogs, err := s.blogRepo.FindTop6ByCategorySlug(slug)
+	if err != nil {
+		// Handle the error, possibly log it and return an empty list
+		return []dto2.BlogCardDto{}
+	}
+
+	// Use the mapper to convert the blogs to BlogCardDto
+	blogCardDtos := s.blogMapper.BlogToBlogCardDto(blogs)
+
+	return blogCardDtos
 }
 
 func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, id int) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *blogServiceImpl) DeleteBlogById(id int) {
 	//TODO implement me
 	panic("implement me")
 }

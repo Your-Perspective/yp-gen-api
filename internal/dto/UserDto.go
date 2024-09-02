@@ -1,6 +1,6 @@
 package dto
 
 type UserDto struct {
-	userName     string
-	profileImage string
+	UserName     string
+	ProfileImage string
 }
