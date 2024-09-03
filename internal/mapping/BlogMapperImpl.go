@@ -118,7 +118,7 @@ func (m *blogMapperImpl) CreateBlogDtoToBlog(dto dto2.BlogCreateRequestDto) mode
 	}
 }
 
-// UpdateBlog Update an existing Blog entity with BlogUpdateRequestDto
+// UpdateBlog updates an existing Blog entity with BlogUpdateRequestDto
 func (m *blogMapperImpl) UpdateBlog(blog *models2.Blog, dto dto2.BlogUpdateRequestDto) {
 	if dto.BlogTitle != "" {
 		blog.BlogTitle = dto.BlogTitle
@@ -129,16 +129,39 @@ func (m *blogMapperImpl) UpdateBlog(blog *models2.Blog, dto dto2.BlogUpdateReque
 	if dto.BlogContent != "" {
 		blog.BlogContent = dto.BlogContent
 	}
+	if dto.Thumbnail != "" {
+		blog.Thumbnail = dto.Thumbnail
+	}
+	if dto.Summary != "" {
+		blog.Summary = dto.Summary
+	}
+	if dto.MinRead > 0 {
+		blog.MinRead = dto.MinRead
+	}
+	if dto.IsPin {
+		blog.IsPin = dto.IsPin
+	}
 	// Handle other fields similarly
 }
 
 // BlogDtoToBlogAdminDto Map a list of Blog entities to BlogAdminDto
 func (m *blogMapperImpl) BlogDtoToBlogAdminDto(blogs []models2.Blog) []dto2.BlogAdminDto {
 	var dtos []dto2.BlogAdminDto
-	for range blogs {
-		// Assuming you have defined BlogAdminDto struct elsewhere
+	for _, blog := range blogs {
 		dtos = append(dtos, dto2.BlogAdminDto{
-			// Map fields accordingly
+			ID:          int(blog.ID),
+			BlogTitle:   blog.BlogTitle,
+			Published:   blog.Published,
+			Slug:        blog.Slug,
+			IsPin:       blog.IsPin,
+			Thumbnail:   blog.Thumbnail,
+			CountViewer: blog.CountViewer,
+			Summary:     blog.Summary,
+			MinRead:     blog.MinRead,
+			Author: dto2.UserDto{
+				UserName:     blog.Author.UserName,
+				ProfileImage: blog.Author.ProfileImage,
+			},
 		})
 	}
 	return dtos

@@ -3,6 +3,7 @@ package repositories
 import (
 	"errors"
 	"gorm.io/gorm"
+	"log"
 	"time"
 	"yp-blog-api/internal/dto"
 	mapper "yp-blog-api/internal/mapping"
@@ -38,12 +39,19 @@ func (r *blogRepositoryImpl) FindAllByPublishedAndNotDeletedOrderByCountViewerDe
 
 func (r *blogRepositoryImpl) FindRecentPosts() ([]dto.RecentPostBlogDto, error) {
 	var blogs []models.Blog
+
+	// Log the beginning of the database query
+	log.Println("Starting database query to find recent posts")
+
+	// Use Preload to load related Author data into Blog
 	err := r.db.Preload("Author").
-		Where("published = ? AND is_deleted = false", true).
+		Where("published = ? AND is_deleted = ?", true, false).
 		Order("created_at DESC").
 		Find(&blogs).Error
 
 	if err != nil {
+		// Log the error before returning
+		log.Printf("Error occurred while querying recent posts: %v", err)
 		return nil, err
 	}
 
@@ -128,7 +136,7 @@ func (r *blogRepositoryImpl) CountByAuthorEmailIgnoreCase(authorEmail string) (i
 }
 
 func (r *blogRepositoryImpl) Save(blog models.Blog) (models.Blog, error) {
-	if err := r.db.Create(&blog).Error; err != nil {
+	if err := r.db.Save(&blog).Error; err != nil {
 		return models.Blog{}, err
 	}
 	return blog, nil

@@ -6,7 +6,6 @@ import (
 
 // BlogUpdateRequestDto corresponds to the Java BlogUpdateRequestDto class
 type BlogUpdateRequestDto struct {
-	ID          int    `json:"id"`
 	BlogTitle   string `json:"blogTitle" validate:"required,max=255"`
 	Published   bool   `json:"published" validate:"required"`
 	BlogContent string `json:"blogContent" validate:"required"`

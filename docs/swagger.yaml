@@ -1,9 +1,49 @@
 definitions:
+  dto.AuthorCardDetailDto:
+    properties:
+      bio:
+        type: string
+      profileImage:
+        type: string
+      userName:
+        type: string
+    type: object
   dto.AuthorCardDto:
     properties:
       profileImage:
         type: string
       userName:
+        type: string
+    type: object
+  dto.BlogAdminDto:
+    properties:
+      author:
+        $ref: '#/definitions/dto.UserDto'
+      blogTitle:
+        type: string
+      categories:
+        items:
+          $ref: '#/definitions/dto.CategoryDto'
+        type: array
+      countViewer:
+        type: integer
+      id:
+        type: integer
+      isPin:
+        type: boolean
+      minRead:
+        type: integer
+      published:
+        type: boolean
+      slug:
+        type: string
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/dto.TagDto'
+        type: array
+      thumbnail:
         type: string
     type: object
   dto.BlogCardDto:
@@ -65,6 +105,75 @@ definitions:
     - minRead
     - published
     type: object
+  dto.BlogDetailDto:
+    properties:
+      author:
+        $ref: '#/definitions/dto.AuthorCardDetailDto'
+      blogContent:
+        type: string
+      blogTitle:
+        type: string
+      categories:
+        items:
+          $ref: '#/definitions/dto.CategoryDto'
+        type: array
+      createdAt:
+        type: string
+      formattedCountViewer:
+        type: string
+      lastModifiedTimeAgo:
+        type: string
+      minRead:
+        type: integer
+      published:
+        type: boolean
+      slug:
+        type: string
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/dto.TagDto'
+        type: array
+      thumbnail:
+        type: string
+    type: object
+  dto.BlogUpdateRequestDto:
+    properties:
+      blogContent:
+        type: string
+      blogTitle:
+        maxLength: 255
+        type: string
+      isPin:
+        type: boolean
+      minRead:
+        minimum: 1
+        type: integer
+      published:
+        type: boolean
+      summary:
+        maxLength: 500
+        type: string
+      thumbnail:
+        maxLength: 255
+        type: string
+    required:
+    - blogContent
+    - blogTitle
+    - isPin
+    - minRead
+    - published
+    type: object
+  dto.CategoryDto:
+    properties:
+      id:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
   dto.RecentPostBlogDto:
     properties:
       author:
@@ -75,6 +184,16 @@ definitions:
         type: string
       timeAgo:
         type: string
+    type: object
+  dto.TagDto:
+    properties:
+      id:
+        type: integer
+      title:
+        description: Equivalent to @NotBlank
+        type: string
+    required:
+    - title
     type: object
   dto.UserDto:
     properties:
@@ -215,6 +334,23 @@ info:
   title: backend service for blog api
   version: "1.0"
 paths:
+  /api/admin/blogs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all blogs for administrative purposes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.BlogAdminDto'
+            type: array
+      summary: Get all blogs for admin
+      tags:
+      - Admin
   /api/blogs:
     post:
       consumes:
@@ -344,40 +480,6 @@ paths:
       summary: Get a blog by ID
       tags:
       - Blog
-    put:
-      consumes:
-      - application/json
-      description: Update a blog by its ID
-      parameters:
-      - description: Blog ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Blog data
-        in: body
-        name: blog
-        required: true
-        schema:
-          $ref: '#/definitions/models.Blog'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Blog'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-      summary: Update an existing blog
-      tags:
-      - Blog
   /api/blogs/:
     get:
       description: List all blogs under a specific category identified by its slug
@@ -391,6 +493,34 @@ paths:
               $ref: '#/definitions/models.Blog'
             type: array
       summary: List blogs by category slug
+      tags:
+      - Blog
+  /api/blogs/:author/:slug:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Author Name
+        in: path
+        name: author
+        required: true
+        type: string
+      - description: Blog Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BlogDetailDto'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       tags:
       - Blog
   /api/blogs/{categoriesSlug}:
@@ -414,6 +544,51 @@ paths:
       summary: List blogs by category slug
       tags:
       - Blog
+  /api/blogs/{id}:
+    delete:
+      description: This endpoint sets the IsDeleted field of a blog to true based
+        on the blog ID.
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Blog marked as deleted
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Mark a blog as deleted by changing its status
+      tags:
+      - Blog
+  /api/blogs/{slug}:
+    put:
+      consumes:
+      - application/json
+      description: Update a blog by its slug
+      parameters:
+      - description: Blog Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Blog update data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BlogUpdateRequestDto'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an existing blog
+      tags:
+      - Blog
   /api/blogs/category/{slug}/top6:
     get:
       description: Retrieve top 6 blogs by category slug, ordered randomly.
@@ -435,7 +610,7 @@ paths:
       summary: Get top 6 blogs by category slug
       tags:
       - Blog
-  /api/blogs/recent-post:
+  /api/blogs/recent-posts:
     get:
       consumes:
       - application/json

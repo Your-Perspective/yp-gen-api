@@ -19,10 +19,9 @@ type BlogService interface {
 	CreateBlog(blogCreateRequestDto dto2.BlogCreateRequestDto) error
 	DeleteById(id uint) error
 
-	UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, id int)
-	DeleteBlogByChangeStatus(id int)
-	FindAllBlogForAdmin() []dto2.BlogAdminDto
+	UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, slug string) error
+	DeleteBlogByChangeStatus(id uint) error
+	FindAllBlogForAdmin() ([]dto2.BlogAdminDto, error)
 
-	// RecentPost have issue
-	RecentPost() ([]dto2.RecentPostBlogDto, error)
+	FindRecentPosts() ([]dto2.RecentPostBlogDto, error)
 }

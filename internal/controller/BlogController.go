@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"log"
 	"net/http"
 	"strconv"
 	"yp-blog-api/internal/dto"
@@ -96,39 +97,59 @@ func (ctrl *BlogController) CreateBlogAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, savedBlog)
 }
 
-// UpdateBlog handles PUT requests to update an existing blog
+// UpdateBlog handles PUT requests to update an existing blog by its slug
 // @Summary Update an existing blog
-// @Description Update a blog by its ID
+// @Description Update a blog by its slug
 // @Tags Blog
 // @Accept  json
 // @Produce  json
-// @Param id path int true "Blog ID"
-// @Param blog body models.Blog true "Blog data"
-// @Success 200 {object} models.Blog
-// @Failure 400 {object} handler.ErrorResponse
-// @Failure 500 {object} handler.ErrorResponse
-// @Router /api/blogs-admin/{id} [put]
-func (ctrl *BlogController) UpdateBlog(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, handler.ErrorResponse{Error: "Bad Request", Message: "Invalid blog ID"})
+// @Param slug path string true "Blog Slug"
+// @Param blog body dto.BlogUpdateRequestDto true "Blog update data"
+// @Router /api/blogs/{slug} [put]
+func (ctrl *BlogController) UpdateBlog(ctx *gin.Context) {
+	var blogUpdateRequestDto dto.BlogUpdateRequestDto
+	slug := ctx.Param("slug")
+
+	// Bind the request body to the DTO
+	if err := ctx.ShouldBindJSON(&blogUpdateRequestDto); err != nil {
+		ctx.JSON(http.StatusBadRequest, handler.ErrorResponse{
+			Error:   "Invalid Request",
+			Message: err.Error(),
+		})
 		return
 	}
 
-	var blog models.Blog
-	if err := c.ShouldBindJSON(&blog); err != nil {
-		c.JSON(http.StatusBadRequest, handler.ErrorResponse{Error: "Invalid input", Message: "Failed to parse blog data"})
+	// Validate the DTO
+	validate := validator.New()
+	if err := validate.Struct(blogUpdateRequestDto); err != nil {
+		validationErrors := handler.FormatValidationErrors(err)
+		ctx.JSON(http.StatusBadRequest, handler.ErrorResponse{
+			Error:   "Validation Failed",
+			Message: "Some fields did not pass validation",
+			Fields:  validationErrors,
+		})
 		return
 	}
 
-	blog.ID = uint(id)
-	updatedBlog, err := ctrl.blogService.Update(blog)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, handler.ErrorResponse{Error: "Internal Server Error", Message: "Failed to update blog"})
+	// Call the service to update the blog
+	if err := ctrl.blogService.UpdateBlog(blogUpdateRequestDto, slug); err != nil {
+		if err.Error() == "blog not found" {
+			ctx.JSON(http.StatusNotFound, handler.ErrorResponse{
+				Error:   "Not Found",
+				Message: "Blog not found",
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, handler.ErrorResponse{
+			Error:   "Internal Server Error",
+			Message: err.Error(),
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedBlog)
+	ctx.JSON(http.StatusOK, handler.SuccessResponse{
+		Message: "Blog updated successfully",
+	})
 }
 
 // DeleteBlog handles DELETE requests to delete a blog by ID
@@ -220,6 +241,15 @@ func (ctrl *BlogController) CreateBlog(c *gin.Context) {
 	c.JSON(http.StatusOK, handler.SuccessResponse{Message: "Blog created successfully"})
 }
 
+// GetBlogDetailByAuthorAndSlug
+// @Tags Blog
+// @Accept  json
+// @Produce  json
+// @Router /api/blogs/:author/:slug [get]
+// @Param author path string true "Author Name"
+// @Param slug path string true "Blog Slug"
+// @Success 200 {object} dto.BlogDetailDto
+// @Failure 404 {object} handler.ErrorResponse
 func (ctrl *BlogController) GetBlogDetailByAuthorAndSlug(c *gin.Context) {
 	// Extract the 'author' and 'slug' parameters from the URL
 	author := c.Param("author")
@@ -246,13 +276,22 @@ func (ctrl *BlogController) GetBlogDetailByAuthorAndSlug(c *gin.Context) {
 // @Success 200 {array} dto.RecentPostBlogDto
 // @Failure 400 {object} handler.ErrorResponse
 // @Failure 500 {object} handler.ErrorResponse
-// @Router /api/blogs/recent-post [get]
+// @Router /api/blogs/recent-posts [get]
 func (ctrl *BlogController) GetRecentPosts(c *gin.Context) {
-	recentPosts, err := ctrl.blogService.RecentPost()
+	// Log the start of the GetRecentPosts request
+	log.Println("Handling request to get recent posts")
+
+	recentPosts, err := ctrl.blogService.FindRecentPosts()
 	if err != nil {
+		// Log the error encountered during the service call
+		log.Printf("Error occurred while getting recent posts: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Log the successful retrieval of recent posts
+	log.Printf("Successfully retrieved %d recent posts", len(recentPosts))
+
 	c.JSON(http.StatusOK, recentPosts)
 }
 
@@ -302,4 +341,33 @@ func (ctrl *BlogController) Find6BlogsByUsernameAndCountViewer(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, blogCardDtos)
+}
+
+// DeleteBlogByChangeStatus
+// @Tags Blog
+// @Summary Mark a blog as deleted by changing its status
+// @Description This endpoint sets the IsDeleted field of a blog to true based on the blog ID.
+// @Param id path uint true "Blog ID"
+// @Success 200 {string} string "Blog marked as deleted"
+// @Failure 404 {object} handler.ErrorResponse
+// @Router /api/blogs/{id} [delete]
+func (ctrl *BlogController) DeleteBlogByChangeStatus(c *gin.Context) {
+	// Extract the 'id' parameter from the URL and convert it to uint
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, handler.ErrorResponse{Error: "Invalid ID", Message: "Blog ID must be a valid number"})
+		return
+	}
+
+	// Call the service method to mark the blog as deleted
+	err = ctrl.blogService.DeleteBlogByChangeStatus(uint(id))
+	if err != nil {
+		// Handle the error, respond with 404 if the blog is not found
+		c.JSON(http.StatusNotFound, handler.ErrorResponse{Error: "Not Found", Message: "Blog not found"})
+		return
+	}
+
+	// Respond with success message
+	c.JSON(http.StatusOK, "Blog marked as deleted")
 }

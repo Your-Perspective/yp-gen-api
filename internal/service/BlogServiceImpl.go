@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -214,15 +215,13 @@ func (s *blogServiceImpl) checkPinnedBlogsLimit(authorID int, isPin bool) error 
 	return nil
 }
 
-func (s *blogServiceImpl) RecentPost() ([]dto2.RecentPostBlogDto, error) {
-	recentPosts, err := s.blogRepo.FindRecentPosts()
+func (s *blogServiceImpl) FindRecentPosts() ([]dto2.RecentPostBlogDto, error) {
+	posts, err := s.blogRepo.FindRecentPosts()
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("Recent posts: %+v\n", recentPosts) // Debug log
-
-	return recentPosts, nil
+	return posts, nil
 }
 
 // Save saves a new blog to the repository.
@@ -250,9 +249,14 @@ func (s *blogServiceImpl) DeleteById(id uint) error {
 	return s.blogRepo.DeleteById(id)
 }
 
-func (s *blogServiceImpl) FindAllBlogForAdmin() []dto2.BlogAdminDto {
-	//TODO implement me
-	panic("implement me")
+func (s *blogServiceImpl) FindAllBlogForAdmin() ([]dto2.BlogAdminDto, error) {
+	blogs, err := s.blogRepo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+
+	blogDtos := s.blogMapper.BlogDtoToBlogAdminDto(blogs)
+	return blogDtos, nil
 }
 
 func (s *blogServiceImpl) Find6BlogsByUsernameAndCountViewer(username string) []dto2.BlogCardDto {
@@ -280,13 +284,44 @@ func (s *blogServiceImpl) Find6BlogsByCategoriesSlug(slug string) []dto2.BlogCar
 
 	return blogCardDtos
 }
+func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, slug string) error {
+	// Validate the DTO
+	if err := blogUpdateRequestDto.Validate(); err != nil {
+		return err
+	}
 
-func (s *blogServiceImpl) UpdateBlog(blogUpdateRequestDto dto2.BlogUpdateRequestDto, id int) {
-	//TODO implement me
-	panic("implement me")
+	// Fetch the existing blog by slug
+	blog, err := s.blogRepo.FindBySlug(slug)
+	if err != nil {
+		return errors.New("blog not found")
+	}
+
+	// Map the updated fields from the DTO to the Blog entity
+	s.blogMapper.UpdateBlog(&blog, blogUpdateRequestDto)
+
+	// Save the updated blog
+	_, err = s.blogRepo.Save(blog)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *blogServiceImpl) DeleteBlogByChangeStatus(id int) {
-	//TODO implement me
-	panic("implement me")
+func (s *blogServiceImpl) DeleteBlogByChangeStatus(id uint) error {
+	// Find the blog by ID using the FindById method
+	blog, err := s.FindById(id)
+	if err != nil {
+		return err // Return an error if the blog is not found
+	}
+
+	// Set IsDeleted to true
+	blog.IsDeleted = true
+
+	// Save the changes to the database using the Save method
+	if _, err := s.Save(blog); err != nil {
+		return err // Return an error if the save fails
+	}
+
+	return nil // Return nil if the operation was successful
 }

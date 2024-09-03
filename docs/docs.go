@@ -15,6 +15,32 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/blogs": {
+            "get": {
+                "description": "Retrieve a list of all blogs for administrative purposes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get all blogs for admin",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BlogAdminDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/blogs": {
             "post": {
                 "description": "Create a new blog with the provided details",
@@ -174,57 +200,6 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
-                "description": "Update a blog by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Blog"
-                ],
-                "summary": "Update an existing blog",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Blog ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Blog data",
-                        "name": "blog",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Blog"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Blog"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "description": "Delete a blog by its ID",
                 "tags": [
@@ -285,6 +260,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/blogs/:author/:slug": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Author Name",
+                        "name": "author",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Blog Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BlogDetailDto"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/blogs/category/{slug}/top6": {
             "get": {
                 "description": "Retrieve top 6 blogs by category slug, ordered randomly.",
@@ -317,7 +335,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/blogs/recent-post": {
+        "/api/blogs/recent-posts": {
             "get": {
                 "description": "Get the most recent and popular blog posts",
                 "consumes": [
@@ -418,9 +436,89 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/blogs/{id}": {
+            "delete": {
+                "description": "This endpoint sets the IsDeleted field of a blog to true based on the blog ID.",
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Mark a blog as deleted by changing its status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blog marked as deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/blogs/{slug}": {
+            "put": {
+                "description": "Update a blog by its slug",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Update an existing blog",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Blog Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Blog update data",
+                        "name": "blog",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BlogUpdateRequestDto"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {
+        "dto.AuthorCardDetailDto": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "profileImage": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.AuthorCardDto": {
             "type": "object",
             "properties": {
@@ -428,6 +526,53 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BlogAdminDto": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.UserDto"
+                },
+                "blogTitle": {
+                    "type": "string"
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CategoryDto"
+                    }
+                },
+                "countViewer": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isPin": {
+                    "type": "boolean"
+                },
+                "minRead": {
+                    "type": "integer"
+                },
+                "published": {
+                    "type": "boolean"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagDto"
+                    }
+                },
+                "thumbnail": {
                     "type": "string"
                 }
             }
@@ -518,6 +663,107 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BlogDetailDto": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.AuthorCardDetailDto"
+                },
+                "blogContent": {
+                    "type": "string"
+                },
+                "blogTitle": {
+                    "type": "string"
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CategoryDto"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "formattedCountViewer": {
+                    "type": "string"
+                },
+                "lastModifiedTimeAgo": {
+                    "type": "string"
+                },
+                "minRead": {
+                    "type": "integer"
+                },
+                "published": {
+                    "type": "boolean"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagDto"
+                    }
+                },
+                "thumbnail": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BlogUpdateRequestDto": {
+            "type": "object",
+            "required": [
+                "blogContent",
+                "blogTitle",
+                "isPin",
+                "minRead",
+                "published"
+            ],
+            "properties": {
+                "blogContent": {
+                    "type": "string"
+                },
+                "blogTitle": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "isPin": {
+                    "type": "boolean"
+                },
+                "minRead": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "published": {
+                    "type": "boolean"
+                },
+                "summary": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "thumbnail": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "dto.CategoryDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.RecentPostBlogDto": {
             "type": "object",
             "properties": {
@@ -531,6 +777,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "timeAgo": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TagDto": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Equivalent to @NotBlank",
                     "type": "string"
                 }
             }
